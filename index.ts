@@ -36,12 +36,22 @@ class Shape {
     }
 
     draw(p: p5): void {
+        const [cx,cy] = this.center.toArray();
         p.fill("red");
         p.circle(...this.center.toArray(), POINT_SIZE);
+        p.textSize(8);
+        p.textAlign("center");
+        p.text(`${cx.toFixed(2)}, ${cx.toFixed(2)}`, cx, cx + POINT_SIZE);
 
         this.vertices.forEach(vertice => {
+            p.noStroke();
             p.fill("blue");
             p.circle(...vertice.toArray(), POINT_SIZE);
+
+            const [x,y] = vertice.toArray();
+            p.textSize(8);
+            p.textAlign("center");
+            p.text(`${x.toFixed(2)}, ${y.toFixed(2)}`, x, y + POINT_SIZE);
         });
 
         this.edges.forEach(edge => {
@@ -63,6 +73,11 @@ class Point {
     }
 
     draw(p: p5) {
+        const [x,y] = this.position.toArray();
+        p.textSize(8);
+        p.textAlign("center");
+        p.text(`${x.toFixed(2)}, ${y.toFixed(2)}`, x, y + POINT_SIZE);
+
         p.fill(this.color);
         p.circle(...this.position.toArray(), POINT_SIZE);
     }
@@ -145,8 +160,22 @@ function getCenter(a: WorldShape): Vector2 {
 const sketch = (p: p5) => {
     const a = new Rectangle(new Vector2(75,105), new Vector2(50,50));
     const b = new Rectangle(new Vector2(175,105), new Vector2(50,50));
+    const c = new Shape(new Vector2(0,0), [
+        new Vector2(352, 168),
+        new Vector2(396, 199),
+        new Vector2(441, 166),
+        new Vector2(390, 136)
+    ],[
+        [new Vector2(352, 168), new Vector2(396, 199)],
+        [new Vector2(396, 199), new Vector2(441, 166)],
+        [new Vector2(441, 166), new Vector2(390, 136)],
+        [new Vector2(390, 136), new Vector2(352, 168)]
+    ])
 
     const points: Point[] = [];
+    const edges: [Point, Point][] = [];
+
+    let lastPoint: Point | null = null;
 
     function getPointCollided(p0: Vector2): Point | null {
         for (let i = 0;i < points.length;i++) {
@@ -170,10 +199,22 @@ const sketch = (p: p5) => {
     }
 
     p.mouseClicked = () => {
-        const pointCollided = getPointCollided(new Vector2(p.mouseX, p.mouseY));
+        const m = new Vector2(p.mouseX, p.mouseY);
+        const pointCollided = getPointCollided(m);
 
-        if (pointCollided) points.push(pointCollided);
-        else points.push(new Point(new Vector2(p.mouseX, p. mouseY), "blue"));
+        if (lastPoint === pointCollided && points.length > 0) return;
+
+        let newLastPoint: Point | null = pointCollided;
+
+        if (!newLastPoint) {
+            const newPoint = new Point(m, "blue");
+            points.push(newPoint);              
+            newLastPoint = newPoint;
+        }
+
+        if (lastPoint) edges.push([lastPoint, newLastPoint]);
+
+        lastPoint = newLastPoint;
     }
 
     p.mouseMoved = () => {
@@ -201,26 +242,28 @@ const sketch = (p: p5) => {
         points.forEach((point, i) => {
             p.noStroke();
             point.draw(p);
+        });
 
-            if (i < points.length - 1) {
-                const nextPoint = points[i + 1];
-                p.stroke("black");
-                p.line(...point.position.toArray(), ...nextPoint.position.toArray());
-            }
+        edges.forEach((edge) => {
+            const [p0, p1] = edge;
 
-            p.fill("purple");
-            p.circle(p.mouseX, p.mouseY, POINT_SIZE);
-
-            // for debugging
-            points.forEach(point => {
-                const m = new Vector2(p.mouseX, p.mouseY);
-
-                p.stroke("black");
-                p.line(...point.position.toArray(), ...m.toArray());
-                
-                p.text(m.length(point.position), ...point.position.toArray());
-            })
+            p.stroke("black");
+            p.line(...p0.position.toArray(), ...p1.position.toArray());
         })
+
+        p.fill("purple");
+        p.circle(p.mouseX, p.mouseY, POINT_SIZE);
+
+        c.draw(p);
+        // for debugging
+      /*   points.forEach(point => {
+            const m = new Vector2(p.mouseX, p.mouseY);
+
+            p.stroke("black");
+            p.line(...point.position.toArray(), ...m.toArray());
+            
+            p.text(m.length(point.position), ...point.position.toArray());
+        }) */
     }
 }
 
