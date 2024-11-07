@@ -1,6 +1,6 @@
 import p5 from "p5"
 
-
+const POINT_SIZE = 10;
 class Vector2 {
     x:number;
     y:number;
@@ -37,11 +37,11 @@ class Shape {
 
     draw(p: p5): void {
         p.fill("red");
-        p.circle(...this.center.toArray(), 5);
+        p.circle(...this.center.toArray(), POINT_SIZE);
 
         this.vertices.forEach(vertice => {
             p.fill("blue");
-            p.circle(...vertice.toArray(), 5);
+            p.circle(...vertice.toArray(), POINT_SIZE);
         });
 
         this.edges.forEach(edge => {
@@ -64,7 +64,7 @@ class Point {
 
     draw(p: p5) {
         p.fill(this.color);
-        p.circle(...this.position.toArray(), 5);
+        p.circle(...this.position.toArray(), POINT_SIZE);
     }
 }
 
@@ -124,7 +124,7 @@ class CircleCollission {
 }
 
 function getRadius(c: Vector2,a: WorldShape) {
-    if (a instanceof Vector2) return 5;
+    if (a instanceof Vector2) return POINT_SIZE;
 
     let maxDistance = Number.MIN_VALUE;
     a.vertices.forEach(vertice => {
@@ -166,8 +166,16 @@ const sketch = (p: p5) => {
 
     p.mouseMoved = () => {
         const m = new Vector2(p.mouseX, p.mouseY);
+      
         points.forEach(point => {
-            console.log(CircleCollission.compare(m, point.position));
+            if (CircleCollission.compare(m, point.position)) {
+                point.color = "green";
+                setTimeout(() => {
+                    const m = new Vector2(p.mouseX, p.mouseY);
+                    if (CircleCollission.compare(m, point.position)) return;
+                    point.color = "blue";
+                }, 1000);
+            }
         });
     }
 
@@ -175,11 +183,11 @@ const sketch = (p: p5) => {
         p.background("#fff");
 
         p.noStroke();
-
         a.draw(p);
         b.draw(p);
 
         points.forEach((point, i) => {
+            p.noStroke();
             point.draw(p);
 
             if (i < points.length - 1) {
