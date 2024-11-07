@@ -13,10 +13,50 @@
         justify-content: center;
         align-items: center;
         background-color: #3b1c32;
+        gap: 2rem;
+        font-family: "Courier New", Courier, monospace;
+      }
+
+      #menu-ui {
+        background-color: white;
+        padding: 5px;
+      }
+
+      .menu-choice-wrapper {
+        display: flex;
+        flex-direction: column;
+        gap: 0.2rem;
+      }
+
+      .menu-choice {
+        display: flex;
+        background: rgb(230, 230, 230);
+        font-size: 0.8em;
+      }
+
+      #defaultCanvas0 {
+        cursor: none;
       }
     </style>
   </head>
   <body>
+    <div id="menu-ui">
+      <h5>MENU</h5>
+      <div class="menu-choice-wrapper">
+        <div class="menu-choice">
+          <p>New Shape Mode</p>
+          <input type="checkbox" id="isNewShapeModeHTML" checked />
+        </div>
+        <div class="menu-choice">
+          <p>New Shape Mode</p>
+          <input type="checkbox" />
+        </div>
+        <div class="menu-choice">
+          <p>New Shape Mode</p>
+          <input type="checkbox" />
+        </div>
+      </div>
+    </div>
     <script type="module" src="./index.ts"></script>
   </body>
 </html>

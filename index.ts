@@ -1,5 +1,18 @@
 import p5 from "p5"
 
+const APP = {
+    isNewShapeMode: true
+};
+
+const isNewShapeModeHTML = document.getElementById("isNewShapeModeHTML");
+
+if (isNewShapeModeHTML) {
+    isNewShapeModeHTML.addEventListener("change", function(event: Event) {
+        const element = event.target as HTMLInputElement;
+        APP.isNewShapeMode = element.checked;
+    });
+}
+   
 const POINT_SIZE = 10;
 class Vector2 {
     x:number;
@@ -202,6 +215,7 @@ const sketch = (p: p5) => {
         const m = new Vector2(p.mouseX, p.mouseY);
         const pointCollided = getPointCollided(m);
 
+        if (!APP.isNewShapeMode || (p.mouseX < 0 || p.mouseX > p.width || p.mouseY < 0 || p.mouseY > p.height)) return;
         if (lastPoint === pointCollided && points.length > 0) return;
 
         let newLastPoint: Point | null = pointCollided;
