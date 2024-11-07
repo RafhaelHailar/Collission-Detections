@@ -119,12 +119,12 @@ class CircleCollission {
         const d = ca.length(cb);
         const rSum = ra + rb;
 
-        return rSum > d;
+        return rSum >= d;
     }
 }
 
 function getRadius(c: Vector2,a: WorldShape) {
-    if (a instanceof Vector2) return POINT_SIZE;
+    if (a instanceof Vector2) return POINT_SIZE / 2;
 
     let maxDistance = Number.MIN_VALUE;
     a.vertices.forEach(vertice => {
@@ -148,6 +148,15 @@ const sketch = (p: p5) => {
 
     const points: Point[] = [];
 
+    function getPointCollided(p0: Vector2): Point | null {
+        for (let i = 0;i < points.length;i++) {
+            const point = points[i];
+            if (CircleCollission.compare(p0, point.position)) return point;
+        }
+
+        return null;
+    }
+
     p.setup = () => {   
         p.createCanvas(600,600);
     }
@@ -161,7 +170,10 @@ const sketch = (p: p5) => {
     }
 
     p.mouseClicked = () => {
-        points.push(new Point(new Vector2(p.mouseX, p. mouseY), "blue"));
+        const pointCollided = getPointCollided(new Vector2(p.mouseX, p.mouseY));
+
+        if (pointCollided) points.push(pointCollided);
+        else points.push(new Point(new Vector2(p.mouseX, p. mouseY), "blue"));
     }
 
     p.mouseMoved = () => {
@@ -192,9 +204,22 @@ const sketch = (p: p5) => {
 
             if (i < points.length - 1) {
                 const nextPoint = points[i + 1];
-                p.fill("black");
+                p.stroke("black");
                 p.line(...point.position.toArray(), ...nextPoint.position.toArray());
             }
+
+            p.fill("purple");
+            p.circle(p.mouseX, p.mouseY, POINT_SIZE);
+
+            // for debugging
+            points.forEach(point => {
+                const m = new Vector2(p.mouseX, p.mouseY);
+
+                p.stroke("black");
+                p.line(...point.position.toArray(), ...m.toArray());
+                
+                p.text(m.length(point.position), ...point.position.toArray());
+            })
         })
     }
 }
