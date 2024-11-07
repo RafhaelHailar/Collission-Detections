@@ -25,10 +25,12 @@ class Vector2 {
 class Shape {
     center: Vector2;
     vertices: Vector2[];
+    edges: [Vector2, Vector2][];
 
-    constructor (center: Vector2, vertices: Vector2[]) {
+    constructor (center: Vector2, vertices: Vector2[], edges?: [Vector2, Vector2][]) {
         this.vertices = vertices;
         this.center = center;
+        this.edges = edges || [];
     }
 
     draw(p: p5): void {
@@ -39,6 +41,13 @@ class Shape {
             p.fill("blue");
             p.circle(...vertice.toArray(), 5);
         });
+
+        this.edges.forEach(edge => {
+            const [p0, p1] = edge;
+            
+            p.fill("black");
+            p.line(p0.x, p0.y, p1.x, p1.y);
+        })
     }
 }
 
@@ -95,12 +104,17 @@ class Rectangle extends Shape {
             cy = (m0 * cx) + b0;
         })();
 
-        super(new Vector2(cx,cy), [v1, v2, v3, v4]);
+        super(
+            new Vector2(cx,cy),
+            [v1, v2, v3, v4],
+            [[v1, v2], [v1, v3], [v2, v4], [v3, v4]]
+        );
     }
 }
 
 const sketch = (p: p5) => {
     const a = new Rectangle(new Vector2(75,105), new Vector2(50,50));
+    const b = new Rectangle(new Vector2(175,105), new Vector2(50,50));
 
     p.setup = () => {   
         p.createCanvas(600,600);
@@ -118,6 +132,7 @@ const sketch = (p: p5) => {
         p.background("#fff");
 
         a.draw(p);
+        b.draw(p);
     }
 }
 
