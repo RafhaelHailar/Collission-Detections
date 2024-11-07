@@ -1,8 +1,5 @@
 import p5 from "p5"
 
-class Control {
-    
-}
 
 class Vector2 {
     x:number;
@@ -19,6 +16,11 @@ class Vector2 {
 
     sub(that: Vector2): Vector2 {
         return new Vector2(this.x - that.x, this.y - that.y);
+    }
+
+    length(that: Vector2): number {
+        const d = this.sub(that);
+        return Math.sqrt(d.x ** 2 + d.y ** 2);
     }
 }
 
@@ -45,38 +47,30 @@ class Shape {
         this.edges.forEach(edge => {
             const [p0, p1] = edge;
             
-            p.fill("black");
+            p.stroke("black");
             p.line(p0.x, p0.y, p1.x, p1.y);
         })
+    }
+}
+
+class Point {
+    position: Vector2;
+    color: string;
+
+    constructor (position: Vector2, color?: string) {
+        this.position = position;
+        this.color = color ?? "black";
+    }
+
+    draw(p: p5) {
+        p.fill(this.color);
+        p.circle(...this.position.toArray(), 5);
     }
 }
 
 class Line {
     
 }
-
-/* 
-y1 = m*x1 + b
-y2 = m*x2 + b
-
-m1*x1 + b1 = m2*x2 + b2
-m1*x1 = m2*x2 + b2 - b1
-m1*x1 - m2*x2 = b2 - b1
-ax - bx = ab - bb
-x(a-b) = ab - bb
-x = (b2 - b1) / (m1 - m2)
-kx = c
-x = c / k
-
-b =  y2 - m*x2
-y1 = m*x1 + y2 - m*x2
-y1 = (m*x1 - m*x2) + y2
-y1 = m*(x1-x2) + y2
-y1 - y2 = m*(x1-x2)
-(y1 - y2) / (x1 - x2) = m
-
-
-*/
 
 class Rectangle extends Shape {
     constructor (position: Vector2, size: Vector2) {
@@ -112,9 +106,47 @@ class Rectangle extends Shape {
     }
 }
 
+type WorldShape = Rectangle | Vector2;
+
+class CircleCollission {
+    static compare(a: WorldShape, b: WorldShape): boolean {
+        const ca: Vector2 = getCenter(a);
+        const cb: Vector2 = getCenter(b);
+
+        const ra = getRadius(ca, a);
+        const rb = getRadius(cb, b);
+
+        const d = ca.length(cb);
+        const rSum = ra + rb;
+
+        return rSum > d;
+    }
+}
+
+function getRadius(c: Vector2,a: WorldShape) {
+    if (a instanceof Vector2) return 5;
+
+    let maxDistance = Number.MIN_VALUE;
+    a.vertices.forEach(vertice => {
+        let distance = c.length(vertice);
+        if (distance > maxDistance) {
+            maxDistance = distance;
+        }
+    });
+
+    return maxDistance;
+}
+
+function getCenter(a: WorldShape): Vector2 {
+    if (a instanceof Vector2) return a;
+    return a.center;
+}
+
 const sketch = (p: p5) => {
     const a = new Rectangle(new Vector2(75,105), new Vector2(50,50));
     const b = new Rectangle(new Vector2(175,105), new Vector2(50,50));
+
+    const points: Point[] = [];
 
     p.setup = () => {   
         p.createCanvas(600,600);
@@ -128,11 +160,34 @@ const sketch = (p: p5) => {
         
     }
 
+    p.mouseClicked = () => {
+        points.push(new Point(new Vector2(p.mouseX, p. mouseY), "blue"));
+    }
+
+    p.mouseMoved = () => {
+        const m = new Vector2(p.mouseX, p.mouseY);
+        points.forEach(point => {
+            console.log(CircleCollission.compare(m, point.position));
+        });
+    }
+
     p.draw = () => {
         p.background("#fff");
 
+        p.noStroke();
+
         a.draw(p);
         b.draw(p);
+
+        points.forEach((point, i) => {
+            point.draw(p);
+
+            if (i < points.length - 1) {
+                const nextPoint = points[i + 1];
+                p.fill("black");
+                p.line(...point.position.toArray(), ...nextPoint.position.toArray());
+            }
+        })
     }
 }
 
